@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import jakarta.validation.Valid;
 import kr.co.joneconsulting.myrestfulservice.bean.AdminUser;
+import kr.co.joneconsulting.myrestfulservice.bean.AdminUserV2;
 import kr.co.joneconsulting.myrestfulservice.bean.User;
 import kr.co.joneconsulting.myrestfulservice.dao.UserDaoService;
 import kr.co.joneconsulting.myrestfulservice.exception.UserNotFoundException;
@@ -28,8 +29,8 @@ public class AdminUserController {
 
     private final UserDaoService service;
 
-    // /admin/users/{id}
-    @GetMapping("/users/{id}")
+    // /admin/v1/users/{id}
+    @GetMapping("/v1/users/{id}")
     public MappingJacksonValue retrieveUser4Admin(@PathVariable Integer id){
         User user = service.findOne(id);
 
@@ -71,6 +72,31 @@ public class AdminUserController {
         FilterProvider filters = new SimpleFilterProvider().addFilter("UserInfo",filter);
 
         MappingJacksonValue mapping = new MappingJacksonValue(adminUsers);
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    @GetMapping("/v2/users/{id}")
+    public MappingJacksonValue retrieveUser4AdminV2(@PathVariable Integer id){
+        User user = service.findOne(id);
+
+        AdminUserV2 adminUser = new AdminUserV2();
+
+        if(user == null){
+            throw new UserNotFoundException(String.format("ID[%s] not found", id));
+        } else {
+//            adminUser.setName(user.getName());
+            BeanUtils.copyProperties(user, adminUser);  // 앞에있는게 소스, 뒤에있는게 타겟 소스-> 타겟
+            adminUser.setGrade("VIP");
+        }
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("id", "name", "joinDate","grade"); // 공개하려는 내용 적기 (제약걸기)
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("UserInfoV2", filter);  // 어디다가 적용할건지
+
+        MappingJacksonValue mapping = new MappingJacksonValue(adminUser);  // FilterProvider 로 결과 데이터를 만들어서 반환
         mapping.setFilters(filters);
 
         return mapping;
