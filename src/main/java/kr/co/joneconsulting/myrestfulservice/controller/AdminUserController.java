@@ -30,7 +30,7 @@ public class AdminUserController {
     private final UserDaoService service;
 
     // /admin/v1/users/{id}
-    @GetMapping("/v1/users/{id}")
+    @GetMapping(value = "/users/{id}", params = "version=1")
     public MappingJacksonValue retrieveUser4Admin(@PathVariable Integer id){
         User user = service.findOne(id);
 
@@ -77,7 +77,7 @@ public class AdminUserController {
         return mapping;
     }
 
-    @GetMapping("/v2/users/{id}")
+    @GetMapping(value= "/users/{id}", params = "version=2")
     public MappingJacksonValue retrieveUser4AdminV2(@PathVariable Integer id){
         User user = service.findOne(id);
 
