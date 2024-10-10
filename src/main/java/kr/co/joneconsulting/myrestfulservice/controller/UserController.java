@@ -1,15 +1,21 @@
 package kr.co.joneconsulting.myrestfulservice.controller;
 
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import kr.co.joneconsulting.myrestfulservice.bean.User;
 import kr.co.joneconsulting.myrestfulservice.dao.UserDaoService;
 import kr.co.joneconsulting.myrestfulservice.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RequiredArgsConstructor
 @RestController
@@ -27,14 +33,17 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    public User retrieveUser(@PathVariable Integer id){
+    public EntityModel<User> retrieveUser(@PathVariable Integer id){
         User user = service.findOne(id);
 
         if(user == null){
             throw new UserNotFoundException(String.format("ID[%s] not found", id));
         }
+        EntityModel entityModel = EntityModel.of(user);
 
-        return user;
+        WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+        entityModel.add(linkTo.withRel("all-users")); // all-users -> http://localhost:8088/users
+        return entityModel;
     }
 
     @PostMapping("/users")
